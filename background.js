@@ -74,7 +74,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
 
         // Ask content script to extract paragraphs with indices
-        const extractResponse = await chrome.tabs.sendMessage(tab.id, { type: "EXTRACT_PARAGRAPHS" });
+        let extractResponse;
+        try {
+          extractResponse = await chrome.tabs.sendMessage(tab.id, { type: "EXTRACT_PARAGRAPHS" });
+        } catch (sendErr) {
+          console.error("Failed to reach content script:", sendErr);
+          sendResponse({ 
+            success: false, 
+            error: "Could not connect to the page. Please reload the tab and try again." 
+          });
+          return;
+        }
 
         if (!extractResponse || !extractResponse.success) {
           sendResponse({ success: false, error: extractResponse?.error || "Failed to extract article content" });
