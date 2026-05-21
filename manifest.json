@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "AnchorRead",
+  "version": "0.1.0",
+  "description": "AI-powered selective highlighting of key content words for faster reading. Preserves original layout and text.",
+
+  "action": {
+    "default_popup": "popup.html"
+  },
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["readability.js", "content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+
+  "host_permissions": [
+    "https://api.openai.com/*"
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["readability.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
