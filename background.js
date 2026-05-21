@@ -21,7 +21,6 @@ async function callLLM(paragraphs, apiKey) {
         content: JSON.stringify({ paragraphs })
       }
     ],
-    response_format: { type: "json_object" },
     max_completion_tokens: 800
   };
 
