@@ -3,6 +3,9 @@
 const MODEL = "gpt-5-nano-2025-08-07";
 const API_BASE = "https://api.openai.com/v1/chat/completions";
 
+const MAX_COMPLETION_TOKENS = 8000;
+const BATCH_SIZE = 8;  // paragraphs per LLM call (keeps prompts reasonable for reasoning model)
+
 async function getApiKey() {
   const result = await chrome.storage.local.get(['apiKey']);
   return result.apiKey;
@@ -21,7 +24,7 @@ async function callLLM(paragraphs, apiKey) {
         content: JSON.stringify({ paragraphs })
       }
     ],
-    max_completion_tokens: 4000
+    max_completion_tokens: MAX_COMPLETION_TOKENS
   };
 
   const res = await fetch(API_BASE, {
@@ -99,8 +102,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           return;
         }
 
-        // Call LLM
-        const llmResult = await callLLM(paragraphs, apiKey);
+        // Process the whole article in batches so we don't overwhelm the reasoning model
+        const allHighlights = [];
+        for (let i = 0; i < paragraphs.length; i += BATCH_SIZE) {
+          const batch = paragraphs.slice(i, i + BATCH_SIZE);
+          try {
+            const batchResult = await callLLM(batch, apiKey);
+            if (batchResult && batchResult.highlights) {
+              allHighlights.push(...batchResult.highlights);
+            }
+          } catch (batchErr) {
+            console.warn("AnchorRead: batch failed", batchErr);
+            // continue with other batches
+          }
+        }
+
+        const llmResult = { highlights: allHighlights };
 
         if (!llmResult.highlights || !Array.isArray(llmResult.highlights)) {
           sendResponse({ success: false, error: "LLM returned unexpected format" });
