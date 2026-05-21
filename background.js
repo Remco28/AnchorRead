@@ -21,7 +21,7 @@ async function callLLM(paragraphs, apiKey) {
         content: JSON.stringify({ paragraphs })
       }
     ],
-    max_completion_tokens: 800
+    max_completion_tokens: 4000
   };
 
   const res = await fetch(API_BASE, {
