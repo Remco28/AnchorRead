@@ -41,7 +41,10 @@ async function callLLM(paragraphs, apiKey) {
   const data = await res.json();
   const content = data.choices?.[0]?.message?.content;
 
-  if (!content) throw new Error("No content in LLM response");
+  if (!content) {
+    console.error("AnchorRead LLM raw response:", JSON.stringify(data, null, 2));
+    throw new Error("No content in LLM response. Check background console for raw output.");
+  }
 
   try {
     return JSON.parse(content);
